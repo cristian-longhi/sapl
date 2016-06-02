@@ -571,7 +571,11 @@ a:link:after, a:visited:after {
         border-color: #d9ddde;
       }
       &.drag {
+        width: 100% !important;
         border-color: #d9ddde;
+        .dpt {
+          transition-duration: 0s !important;
+        }
       }
       .dpt {
         width: 100% !important;
@@ -586,6 +590,12 @@ a:link:after, a:visited:after {
         &.ui-draggable div {
           cursor: pointer;
         }
+        &.dpt-comp-selected {
+          transition: all 0.3s ease;
+          width: auto !important;
+          margin: 2em -3.7em;
+          box-shadow: 0 0 6px rgba(0,0,0,.16),0 6px 12px rgba(0,0,0,.32);
+        }
       }
     }
   } /* fim dpt */
@@ -593,7 +603,7 @@ a:link:after, a:visited:after {
   .dpt-selected {
     font-size: 1em;
     border: 0px solid $color_actions_border;
-    margin: 1em -2em 1em -2.8em;
+    margin: 1em -1.8em 1em -1.8em;
     padding: 2.2em 2.2em 1.6em 2.2em;
     box-shadow: -4px 15px 15px rgba(0, 0, 0, 0.1), 0px 6px 6px rgba(0, 0, 0, 0.23);
 
@@ -633,16 +643,20 @@ a:link:after, a:visited:after {
       &:hover {
         border-color: transparent;
       }
+      &.drag {
+        width: 100% !important;
+        .dpt {
+          transition-duration: 0s !important;
+        }
+      }
       .dpt {
+        width: auto !important;
+        transition: all 0.3s ease;
         background-color: white;
         &:not(:first-child) {
           border-top: 0px solid white;
         }
-        &:hover {
-          width: auto !important;
-          margin: 2em -3.7em;
-          box-shadow: 0 0 6px rgba(0,0,0,.16),0 6px 12px rgba(0,0,0,.32);
-        }
+
       }
     }
 
@@ -972,7 +986,8 @@ a:link:after, a:visited:after {
         }
       }
     } /* fim csform*/
-  }
+  } /* fim dpt-selected */
+
 
   .selected {
     background-color: rgba(255, 255, 255, 0.5);

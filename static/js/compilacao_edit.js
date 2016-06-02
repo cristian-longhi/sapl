@@ -20,14 +20,12 @@ var onSubmitEditForm = function(event) {
 
     $.post(url, formData)
     .done(function(data) {
-
         if (typeof data == "string") {
             $('.dpt-selected').html(data);
             clearEditSelected();
-            reloadFunctionsForObjectsOfCompilacao();
+            reloadFunctionsForObjectsOfEdition();
             return;
         }
-
         clearEditSelected();
 
         if (data.pk != null)
@@ -116,7 +114,6 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
 
     $.get(url).done(function( data ) {
         if ( _action == null || _action.startsWith('refresh')) {
-
             if (flag_refresh_all) {
                 if (flag_actions_vibible)
                     clearEditSelected();
@@ -127,8 +124,7 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
                     clearEditSelected();
                 $( '#dpt' + pk_refresh ).prepend( data );
             }
-
-            reloadFunctionsForObjectsOfCompilacao();
+            reloadFunctionsForObjectsOfEdition();
 
             var _editortype = editortype;
             if ( $('.edt-'+_editortype).length == 0) {
@@ -158,6 +154,7 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
 
             if (flag_actions_vibible == null || flag_actions_vibible) {
                 $('#dpt'+pk_edit).addClass('dpt-selected');
+                reloadFunctionsForObjectsOfCompilacao();
                 try {
                     $('html, body').animate({
                         scrollTop: $('#dpt' + pk_edit ).offset().top - window.innerHeight / 9
@@ -192,7 +189,7 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
         }
         else {
             clearEditSelected();
-            reloadFunctionsForObjectsOfCompilacao();
+            reloadFunctionsForObjectsOfEdition();
             modalMessage(data.message, 'alert-success', null);
         }
 
@@ -239,16 +236,21 @@ function refreshScreenFocusPk(data) {
 
 function clearEditSelected() {
     $('.bloco' ).removeClass('displaynone' );
-
     $(".container").removeClass('class_color_container');
     tinymce.remove();
     $('.dpt-selected').removeClass('dpt-selected');
     $('.dpt').css('min-height', '');
     $('.csform').remove();
+
+    $('.dpt-comp-selected').removeClass('dpt-comp-selected');
 }
 function reloadFunctionsDraggables() {
     $( ".bloco_alteracao" ).sortable({
       revert: true,
+      distance: 15,
+      start: function( event, ui ) {
+      }
+      ,
       stop: function( event, ui ) {
           var pk = ui.item.attr('pk');
           var bloco_pk = ui.item.closest('.bloco').closest('.dpt').attr('pk');
@@ -256,6 +258,7 @@ function reloadFunctionsDraggables() {
           url = pk+'/actions?action=drag_move_dpt_alterado&index='+ui.item.index()+'&bloco_pk='+bloco_pk;
           $.get(url).done(function( data ) {
               console.log(pk+ ' - '+ bloco_pk);
+              reloadFunctionsForObjectsOfCompilacao();
           });
       }
     });
@@ -264,19 +267,41 @@ function reloadFunctionsDraggables() {
       connectToSortable: ".bloco_alteracao",
       revert: 'invalid',
       zIndex: 1,
+      distance: 15,
       drag: function( event, ui ) {
-          $( ".bloco_alteracao" ).addClass('drag');
+          $('.dpt-comp-selected').removeClass('dpt-comp-selected');
+          $(".bloco_alteracao").addClass('drag');
       },
       stop: function( event, ui ) {
-          $( ".bloco_alteracao" ).removeClass('drag');
+          $(".bloco_alteracao").removeClass('drag');
       },
     });
 
-    $( ".bloco_alteracao" ).disableSelection();
+    $(".bloco_alteracao").disableSelection();
 }
 
+
 function reloadFunctionsForObjectsOfCompilacao() {
-    $('.dpt .de, .btn-action, .btn-edit').off();
+    $('.dpt-selected .de-compilacao').off();
+    $('.dpt-selected').on('click', function() {
+        if ( ! $(event.target).hasClass('de-compilacao'))
+            $('.dpt-comp-selected').removeClass('dpt-comp-selected');
+    });
+    $('.dpt-selected .de-compilacao').on('click', function() {
+        var dpt = $(this).closest('.dpt');
+        if (dpt.hasClass('dpt-comp-selected')) {
+            dpt.removeClass('dpt-comp-selected');
+            return;
+        }
+        $('.dpt-comp-selected').removeClass('dpt-comp-selected');
+        dpt.addClass('dpt-comp-selected');
+
+
+    });
+}
+
+function reloadFunctionsForObjectsOfEdition() {
+    $('.dpt .de, .btn-action, .btn-edit, .de-compilacao').off();
 
     $('.dpt .de, .btn-edit').on('click', clickEditDispositivo);
 
@@ -285,7 +310,6 @@ function reloadFunctionsForObjectsOfCompilacao() {
     $('#editdi_texto').focus();
 
     reloadFunctionsDraggables()
-
 }
 
 $(document).ready(function() {
@@ -297,7 +321,7 @@ $(document).ready(function() {
         SetCookie("editortype", editortype, 30)
     }
 
-    reloadFunctionsForObjectsOfCompilacao();
+    reloadFunctionsForObjectsOfEdition();
 
     $("#message_block").css("display", "none");
 
