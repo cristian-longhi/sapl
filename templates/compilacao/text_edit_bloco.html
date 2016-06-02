@@ -51,6 +51,16 @@
           </ul>
 
           <ul class="actions_inserts {% if not dpt.tipo_dispositivo.dispositivo_de_articulacao and not dpt.tipo_dispositivo.dispositivo_de_alteracao%}menu_flutuante{% elif dpt.tipo_dispositivo.dispositivo_de_alteracao and dpt.tipo_dispositivo.dispositivo_de_articulacao%}menu_flutuante_fixo{%endif%}">
+
+
+              {% if not dpt.rotulo and not dpt.texto and dpt.tipo_dispositivo.dispositivo_de_articulacao and dpt.tipo_dispositivo.dispositivo_de_alteracao %}
+                    <li class="btn-comp btn-inclusao"><a class="btn-inserts" pk="{{dpt.pk}}">RI<span>{% trans 'Registrar Inclusão'%}</span></a></li>
+                    <li class="btn-comp btn-revogacao"><a  class="btn-inserts" pk="{{dpt.pk}}">RR<span>{% trans 'Registrar Revogação'%}</span></a></li>
+                    <li class="btn-comp btn-alteracao" ><a class="btn-inserts" pk="{{dpt.pk}}">RA<span>{% trans 'Registrar Alteração'%}</span></a></li>
+              {% endif %}
+
+
+
             {% if dpt.dispositivo_subsequente == None %}
               {% for inserts in view|select_provaveis_inserts:request %}
                 {% if inserts.itens %}
@@ -88,6 +98,15 @@
             {%endif%}
           </div>
 
+          <ul class="btns-action actions_parents">
+            <div>Em Edição:</div>
+            {%for parent in dpt.get_parents_asc %}
+              <li><a action="refresh" pk="{{parent.pk}}" ordem="{{parent.ordem}}" name="{{parent.pk}}" title="{{parent.texto|short_string:50}}" class="btn-parents btn-action">{{parent|nomenclatura}}</a></li>
+            {%endfor %}
+            <li class="selected"><a action="refresh" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.texto|short_string:50}}" class="btn-parents btn-action">{{dpt|nomenclatura}}</a></li>
+          </ul>
+
+
           <ul class="label_status" >
             <li>p: {{dpt.dispositivo_substituido_id|default:''}}</li>
             <li>&#8226;</li>
@@ -109,17 +128,9 @@
               ?
               </a>
             </li>
-
-
           </ul>
 
-          <ul class="btns-action actions_parents">
-            <div>Em Edição:</div>
-            {%for parent in dpt.get_parents_asc %}
-              <li><a action="refresh" pk="{{parent.pk}}" ordem="{{parent.ordem}}" name="{{parent.pk}}" title="{{parent.texto|short_string:50}}" class="btn-parents btn-action">{{parent|nomenclatura}}</a></li>
-            {%endfor %}
-            <li class="selected"><a action="refresh" pk="{{dpt.pk}}" ordem="{{dpt.ordem}}" name="{{dpt.pk}}" title="{{dpt.texto|short_string:50}}" class="btn-parents btn-action">{{dpt|nomenclatura}}</a></li>
-          </ul>
+
         </form>
       </div>
     {% endif%}
@@ -128,9 +139,7 @@
       {% if not dpt.rotulo and not dpt.texto and dpt.tipo_dispositivo.dispositivo_de_articulacao%}
         <div class="btns-action actions_right">
           <a class="btn-bloco btn-edit" pk="{{dpt.pk}}">{% trans 'Editar'%} {{ dpt.tipo_dispositivo.nome }} {{ dpt.rotulo }}</a>
-          <a class="btn-bloco btn-inclusao" pk="{{dpt.pk}}">{% trans 'Registrar Inclusão'%}</a>
-          <a class="btn-bloco btn-revogacao" pk="{{dpt.pk}}">{% trans 'Registrar Revogação'%}</a>
-          <a class="btn-bloco btn-alteracao" pk="{{dpt.pk}}">{% trans 'Registrar Alteração'%}</a>
+
         </div>
       {% endif %}
       <div class="bloco {% dispositivo_desativado dpt view.inicio_vigencia view.fim_vigencia %} {{ dpt.tipo_dispositivo.class_css }}">

@@ -24,7 +24,7 @@ var onSubmitEditForm = function(event) {
         if (typeof data == "string") {
             $('.dpt-selected').html(data);
             clearEditSelected();
-            reloadFunctionClicks();
+            reloadFunctionsForObjectsOfCompilacao();
             return;
         }
 
@@ -96,19 +96,14 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
         url = pk_refresh+'/refresh?edit='+pk_edit+url;
     }
     else if (_action.startsWith('add_')) {
-
         url = pk_refresh+'/actions?action='+_action;
         url += '&tipo_pk='+_tipo_pk;
         url += '&variacao='+_variacao;
-
         $("#message_block").css("display", "block");
-
     }
     else if (_action.startsWith('set_')) {
-
         url = pk_refresh+'/actions?action='+_action;
         $("#message_block").css("display", "block");
-
     }
     else if (_action.startsWith('delete_')) {
         var r = confirm("Confirma Exclusão deste dispositivo?");
@@ -125,19 +120,15 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
             if (flag_refresh_all) {
                 if (flag_actions_vibible)
                     clearEditSelected();
-
                 $( '#dpt' + pk_refresh ).html( data);
             }
             else {
-                //console.log(pk_refresh + ' - '+pk_edit)
                 if (flag_actions_vibible == null || flag_actions_vibible)
                     clearEditSelected();
-
-                //$( '#dpt' + pk_refresh+' > .bloco' ).addClass('displaynone' );
                 $( '#dpt' + pk_refresh ).prepend( data );
             }
 
-            reloadFunctionClicks();
+            reloadFunctionsForObjectsOfCompilacao();
 
             var _editortype = editortype;
             if ( $('.edt-'+_editortype).length == 0) {
@@ -201,7 +192,7 @@ var clickUpdateDispositivo = function(event, __pk_refresh, __pk_edit, __action, 
         }
         else {
             clearEditSelected();
-            reloadFunctionClicks();
+            reloadFunctionsForObjectsOfCompilacao();
             modalMessage(data.message, 'alert-success', null);
         }
 
@@ -255,15 +246,7 @@ function clearEditSelected() {
     $('.dpt').css('min-height', '');
     $('.csform').remove();
 }
-
-function reloadFunctionClicks() {
-    $('.dpt .de, .btn-action, .btn-edit').off();
-
-    $('.dpt .de, .btn-edit').on('click', clickEditDispositivo);
-
-    $('.btn-action').on('click', clickUpdateDispositivo);
-
-    $('#editdi_texto').focus();
+function reloadFunctionsDraggables() {
     $( ".bloco_alteracao" ).sortable({
       revert: true,
       stop: function( event, ui ) {
@@ -292,6 +275,19 @@ function reloadFunctionClicks() {
     $( ".bloco_alteracao" ).disableSelection();
 }
 
+function reloadFunctionsForObjectsOfCompilacao() {
+    $('.dpt .de, .btn-action, .btn-edit').off();
+
+    $('.dpt .de, .btn-edit').on('click', clickEditDispositivo);
+
+    $('.btn-action').on('click', clickUpdateDispositivo);
+
+    $('#editdi_texto').focus();
+
+    reloadFunctionsDraggables()
+
+}
+
 $(document).ready(function() {
 
     editortype = ReadCookie("editortype")
@@ -301,7 +297,8 @@ $(document).ready(function() {
         SetCookie("editortype", editortype, 30)
     }
 
-    reloadFunctionClicks();
+    reloadFunctionsForObjectsOfCompilacao();
+
     $("#message_block").css("display", "none");
 
     href = location.href.split('#')
