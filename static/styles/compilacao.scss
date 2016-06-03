@@ -650,7 +650,7 @@ a:link:after, a:visited:after {
         }
       }
       .dpt {
-        width: auto !important;
+        width: 100% !important;
         transition: all 0.3s ease;
         background-color: white;
         &:not(:first-child) {

@@ -238,9 +238,13 @@ function clearEditSelected() {
     $('.bloco' ).removeClass('displaynone' );
     $(".container").removeClass('class_color_container');
     tinymce.remove();
+
+    $('.dpt-selected .de-compilacao').off();
     $('.dpt-selected').removeClass('dpt-selected');
-    $('.dpt').css('min-height', '');
+
+    $('.dpt').css('min-height', 'auto');
     $('.csform').remove();
+    $( ".bloco_alteracao:not(:has(div))" ).css('border-color', "#eee");
 
     $('.dpt-comp-selected').removeClass('dpt-comp-selected');
 }
@@ -309,7 +313,7 @@ function reloadFunctionsForObjectsOfEdition() {
 
     $('#editdi_texto').focus();
 
-    reloadFunctionsDraggables()
+    reloadFunctionsDraggables();
 }
 
 $(document).ready(function() {
@@ -320,7 +324,7 @@ $(document).ready(function() {
         editortype = "textarea"
         SetCookie("editortype", editortype, 30)
     }
-
+    clearEditSelected();
     reloadFunctionsForObjectsOfEdition();
 
     $("#message_block").css("display", "none");
