@@ -153,6 +153,31 @@ def anexo_upload_path(instance, filename):
     # return get_sessao_media_path(instance, 'anexo', filename)
 
 
+def restringe_sessoes_visiveis(qs, user):
+    """Restringe o queryset às sessões visíveis na consulta pública.
+
+    Usuário autenticado enxerga todas. Para o público, ficam ocultas as
+    sessões cadastradas com antecedência, ou seja, as de data futura
+    marcadas como não iniciadas e sem pauta publicada.
+
+    A data é o que distingue o cadastro antecipado: sessões de hoje ou de
+    datas passadas ficam sempre visíveis, mesmo com `iniciada` em Não, porque
+    há Casas que não marcam o campo nas sessões já realizadas.
+
+    `iniciada` nulo conta como visível: o default do campo só surgiu na
+    migração 0027, que não preencheu as linhas já existentes, então bases
+    antigas têm sessões realizadas com o campo em NULL.
+    """
+    if user.is_authenticated:
+        return qs
+
+    return qs.filter(
+        Q(publicar_pauta=True) |
+        Q(iniciada=True) |
+        Q(iniciada__isnull=True) |
+        Q(data_inicio__lte=timezone.localdate()))
+
+
 class SessaoPlenaria(models.Model):
     # TODO trash??? Seems to have been a FK in the past. Would be:
     # andamento_sessao = models.ForeignKey(
@@ -413,6 +438,15 @@ class ExpedienteMateria(AbstractOrdemDia):
         verbose_name = _('Matéria do Expediente')
         verbose_name_plural = _('Matérias do Expediente')
         ordering = ['numero_ordem']
+        constraints = [
+            # No máximo uma matéria de expediente aberta para votação por
+            # vez (mesma invariante que abrir_votacao() já garante na
+            # aplicação — isto é o backstop no nível do banco).
+            models.UniqueConstraint(
+                fields=['votacao_aberta'],
+                condition=models.Q(votacao_aberta=True),
+                name='sessao_expedientemateria_unique_votacao_aberta'),
+        ]
 
 
 class TipoExpediente(models.Model):
@@ -563,6 +597,15 @@ class OrdemDia(AbstractOrdemDia):
         verbose_name = _('Matéria da Ordem do Dia')
         verbose_name_plural = _('Matérias da Ordem do Dia')
         ordering = ['numero_ordem']
+        constraints = [
+            # No máximo uma matéria de ordem do dia aberta para votação por
+            # vez (mesma invariante que abrir_votacao() já garante na
+            # aplicação — isto é o backstop no nível do banco).
+            models.UniqueConstraint(
+                fields=['votacao_aberta'],
+                condition=models.Q(votacao_aberta=True),
+                name='sessao_ordemdia_unique_votacao_aberta'),
+        ]
 
 
 class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
@@ -574,6 +617,9 @@ class PresencaOrdemDia(models.Model):  # OrdemDiaPresenca
         verbose_name = _('Presença da Ordem do Dia')
         verbose_name_plural = _('Presenças da Ordem do Dia')
         ordering = ['parlamentar__nome_parlamentar']
+        # Presença é um sim/não: mais de uma linha para o mesmo parlamentar
+        # na mesma sessão infla a contagem dos relatórios.
+        unique_together = ('sessao_plenaria', 'parlamentar')
 
     def __str__(self):
         # FIXME ambigous
@@ -700,6 +746,20 @@ class VotoParlamentar(models.Model):  # RegistroVotacaoParlamentar
         verbose_name = _('Registro de Votação de Parlamentar')
         verbose_name_plural = _('Registros de Votações de Parlamentares')
         ordering = ('id',)
+        constraints = [
+            # Garante, no nível do banco, no máximo um voto por parlamentar
+            # por matéria — get_or_create() sozinho não protege contra duas
+            # inserções concorrentes (ex.: o tablet do parlamentar e o
+            # formulário em lote do operador chegando ao mesmo tempo).
+            models.UniqueConstraint(
+                fields=['parlamentar', 'ordem'],
+                condition=models.Q(ordem__isnull=False),
+                name='sessao_votoparlamentar_unique_parlamentar_ordem'),
+            models.UniqueConstraint(
+                fields=['parlamentar', 'expediente'],
+                condition=models.Q(expediente__isnull=False),
+                name='sessao_votoparlamentar_unique_parlamentar_expediente'),
+        ]
 
     def __str__(self):
         return _('Votação: %(votacao)s - Parlamentar: %(parlamentar)s') % {
@@ -716,6 +776,9 @@ class SessaoPlenariaPresenca(models.Model):
         verbose_name = _('Presença em Sessão Plenária')
         verbose_name_plural = _('Presenças em Sessões Plenárias')
         ordering = ['parlamentar__nome_parlamentar']
+        # Presença é um sim/não: mais de uma linha para o mesmo parlamentar
+        # na mesma sessão infla a contagem dos relatórios.
+        unique_together = ('sessao_plenaria', 'parlamentar')
 
 
 ORDENACAO_RESUMO = [
